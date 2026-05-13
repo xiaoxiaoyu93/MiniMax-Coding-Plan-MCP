@@ -32,7 +32,7 @@
 </div>
 
 <p align="center">
-  Specialized MiniMax Model Context Protocol (MCP) server designed for  <a href="https://platform.minimax.io/docs/coding-plan/intro">coding-plan</a> users, featuring AI-powered search and vision analysis APIs optimized for code development workflows. Unlike the standard <a href="https://github.com/MiniMax-AI/MiniMax-MCP">MiniMax-MCP</a>, this version provides coding-specific tools (for examples: <code>web_search</code> and <code>understand_image</code>) that integrate seamlessly with MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to enhance your coding experience.
+  Specialized MiniMax Model Context Protocol (MCP) server designed for  <a href="https://platform.minimax.io/docs/coding-plan/intro">coding-plan</a> users, featuring AI-powered search and vision analysis APIs optimized for code development workflows. Unlike the standard <a href="https://github.com/MiniMax-AI/MiniMax-MCP">MiniMax-MCP</a>, this version provides coding-specific tools (for examples: <code>minimax_web_search</code> and <code>minimax_understand_image</code>) that integrate seamlessly with MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to enhance your coding experience.
 </p>
 
 ## Documentation
@@ -94,20 +94,20 @@ We support two transport types: stdio and sse.
 ## Available Tools
 | tool  | description  |
 |-|-|
-|`web_search`|Performs web searches and returns organic search results along with related search queries|
-|`understand_image`|Analyzes images with AI based on text prompts, extracts information and answers questions about images|
+|`minimax_web_search`|Performs web searches and returns organic search results along with related search queries|
+|`minimax_understand_image`|Analyzes images with AI based on text prompts, extracts information and answers questions about images|
 
 ## Release Notes
 
 ### November 20, 2025
 
 #### 🆕 What's New
-- **Web Search**: New `web_search` tool - perform web searches and get organic results with related search queries
-- **Vision Language Model**: New `understand_image` tool - analyze images using AI based on text prompts
+- **Web Search**: New `minimax_web_search` tool - perform web searches and get organic results with related search queries
+- **Vision Language Model**: New `minimax_understand_image` tool - analyze images using AI based on text prompts
 
 #### 📈 Features
-- `web_search` - Search the web and get structured results including titles, links, snippets, and related searches
-- `understand_image` - Analyze images from URLs or local files, supporting JPEG, PNG, and WebP formats
+- `minimax_web_search` - Search the web and get structured results including titles, links, snippets, and related searches
+- `minimax_understand_image` - Analyze images from URLs or local files, supporting JPEG, PNG, and WebP formats
 
 ## FAQ
 ### 1. invalid api key
@@ -131,13 +131,13 @@ Once you obtain the absolute path (e.g., /usr/local/bin/uvx), update your config
 ⚠️ Warning: Using these tools may incur costs.
 
 ### 1. Web Search
-Use the `web_search` tool to search for information on the web:
+Use the `minimax_web_search` tool to search for information on the web:
 
 <img src="https://cdn.hailuoai.video/moss/prod/2025-11-20-21/user/multi_chat_file/4e613232-09d1-4860-8f7e-41ab7683cbc8.image/png" style="display: 
 inline-block; vertical-align: middle; "/>
 
 ### 2. Image Analysis
-Use the `understand_image` tool to analyze images with AI:
+Use the `minimax_understand_image` tool to analyze images with AI:
 
 <img src="https://cdn.hailuoai.video/moss/prod/2025-11-20-21/user/multi_chat_file/80c9792c-09f6-430c-9814-e535354c4596.image/png" style="display: 
 inline-block; vertical-align: middle; "/>

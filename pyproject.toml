@@ -17,8 +17,8 @@ classifiers = [
 keywords = [
     "minimax",
     "mcp",
-    "web_search",
-    "understand-image",
+    "minimax_web_search",
+    "minimax_understand_image",
 ]
 requires-python = ">=3.10"
 dependencies = [
