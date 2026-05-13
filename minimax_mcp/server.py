@@ -73,7 +73,7 @@ api_client = MinimaxAPIClient(api_key, api_host)
         }
     """
 )
-def web_search(
+def minimax_web_search(
     query: str,
 ) -> TextContent:
     try:
@@ -128,7 +128,7 @@ def web_search(
         A text description of the image analysis result.
     """
 )
-def understand_image(
+def minimax_understand_image(
     prompt: str,
     image_source: str,
 ) -> TextContent:
