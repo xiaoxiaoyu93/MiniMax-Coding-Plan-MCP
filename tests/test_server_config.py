@@ -64,10 +64,14 @@ def test_network_settings_and_bearer_token_are_applied(load_server_module):
     assert server.mcp.settings.host == "127.0.0.1"
     assert server.mcp.settings.port == 9001
     assert server.mcp.settings.auth is not None
-    assert server.mcp._token_verifier is not None
+    assert str(server.mcp.settings.auth.resource_server_url) == "http://127.0.0.1:9001/"
 
-    auth_info = anyio.run(server.mcp._token_verifier.verify_token, "secret-token")
-    invalid_auth_info = anyio.run(server.mcp._token_verifier.verify_token, "wrong-token")
+    verifier = server.StaticBearerTokenVerifier(
+        expected_token="secret-token",
+        resource_url="http://127.0.0.1:9001",
+    )
+    auth_info = anyio.run(verifier.verify_token, "secret-token")
+    invalid_auth_info = anyio.run(verifier.verify_token, "wrong-token")
 
     assert auth_info is not None
     assert auth_info.client_id == server.STATIC_BEARER_TOKEN_CLIENT_ID

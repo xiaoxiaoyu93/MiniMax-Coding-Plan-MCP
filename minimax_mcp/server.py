@@ -270,8 +270,8 @@ def minimax_understand_image(
 
 
 def main():
-    print("Starting Minimax MCP server")
     """Run the Minimax MCP server"""
+    print("Starting Minimax MCP server")
     mcp.run(transport=transport)
 
 
