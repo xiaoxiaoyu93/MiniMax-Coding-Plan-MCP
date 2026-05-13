@@ -13,28 +13,128 @@ Note: Tools without cost warnings are free to use as they only read existing dat
 
 import os
 import json
+import secrets
 from dotenv import load_dotenv
+from mcp.server.auth.provider import AccessToken
+from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
 from mcp.types import TextContent
 from minimax_mcp.utils import (
     process_image_url,
 )
 
-from minimax_mcp.const import *
+from minimax_mcp.const import (
+    ENV_FASTMCP_LOG_LEVEL,
+    ENV_MINIMAX_API_HOST,
+    ENV_MINIMAX_API_KEY,
+    ENV_MINIMAX_MCP_BEARER_TOKEN,
+    ENV_MINIMAX_MCP_HOST,
+    ENV_MINIMAX_MCP_PORT,
+    ENV_MINIMAX_MCP_TRANSPORT,
+)
 from minimax_mcp.exceptions import MinimaxAPIError, MinimaxRequestError
 from minimax_mcp.client import MinimaxAPIClient
 
 load_dotenv()
-api_key = os.getenv(ENV_MINIMAX_API_KEY)
-api_host = os.getenv(ENV_MINIMAX_API_HOST)
+DEFAULT_NETWORK_HOST = "0.0.0.0"
+DEFAULT_NETWORK_PORT = 8000
+STREAMABLE_HTTP_TRANSPORT = "streamable-http"
+TRANSPORT_ALIASES = {
+    "stdio": "stdio",
+    "sse": "sse",
+    "streamable": STREAMABLE_HTTP_TRANSPORT,
+    STREAMABLE_HTTP_TRANSPORT: STREAMABLE_HTTP_TRANSPORT,
+}
+STATIC_BEARER_TOKEN_CLIENT_ID = "minimax-static-bearer-token"
+
+
+def get_required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"{name} environment variable is required")
+    return value
+
+
+def get_transport() -> str:
+    raw_transport = os.getenv(ENV_MINIMAX_MCP_TRANSPORT, "stdio").strip().lower()
+    transport = TRANSPORT_ALIASES.get(raw_transport)
+    if transport is None:
+        supported_transports = ", ".join(sorted(TRANSPORT_ALIASES))
+        raise ValueError(
+            f"Unsupported {ENV_MINIMAX_MCP_TRANSPORT} value: {raw_transport}. "
+            f"Supported values: {supported_transports}"
+        )
+    return transport
+
+
+def get_listen_host() -> str:
+    return os.getenv(ENV_MINIMAX_MCP_HOST, DEFAULT_NETWORK_HOST).strip() or DEFAULT_NETWORK_HOST
+
+
+def get_listen_port() -> int:
+    raw_port = os.getenv(ENV_MINIMAX_MCP_PORT, str(DEFAULT_NETWORK_PORT)).strip()
+    try:
+        port = int(raw_port)
+    except ValueError as exc:
+        raise ValueError(f"{ENV_MINIMAX_MCP_PORT} must be a valid integer") from exc
+
+    if port < 1 or port > 65535:
+        raise ValueError(f"{ENV_MINIMAX_MCP_PORT} must be between 1 and 65535")
+    return port
+
+
+def build_public_server_url(host: str, port: int) -> str:
+    public_host = host
+    if public_host in {"0.0.0.0", "::", "[::]"}:
+        public_host = "127.0.0.1"
+    elif ":" in public_host and not public_host.startswith("["):
+        public_host = f"[{public_host}]"
+    return f"http://{public_host}:{port}"
+
+
+class StaticBearerTokenVerifier:
+    def __init__(self, expected_token: str, resource_url: str):
+        self.expected_token = expected_token
+        self.resource_url = resource_url
+
+    async def verify_token(self, token: str) -> AccessToken | None:
+        if not secrets.compare_digest(token, self.expected_token):
+            return None
+
+        return AccessToken(
+            token=token,
+            client_id=STATIC_BEARER_TOKEN_CLIENT_ID,
+            scopes=[],
+            resource=self.resource_url,
+        )
+
+
+api_key = get_required_env(ENV_MINIMAX_API_KEY)
+api_host = get_required_env(ENV_MINIMAX_API_HOST)
 fastmcp_log_level = os.getenv(ENV_FASTMCP_LOG_LEVEL) or "WARNING"
+transport = get_transport()
+listen_host = get_listen_host()
+listen_port = get_listen_port()
+bearer_token = os.getenv(ENV_MINIMAX_MCP_BEARER_TOKEN)
 
-if not api_key:
-    raise ValueError("MINIMAX_API_KEY environment variable is required")
-if not api_host:
-    raise ValueError("MINIMAX_API_HOST environment variable is required")
+fastmcp_settings = {
+    "log_level": fastmcp_log_level,
+    "host": listen_host,
+    "port": listen_port,
+}
 
-mcp = FastMCP("Minimax",log_level=fastmcp_log_level)
+if bearer_token:
+    public_server_url = build_public_server_url(listen_host, listen_port)
+    fastmcp_settings["auth"] = AuthSettings(
+        issuer_url=public_server_url,
+        resource_server_url=public_server_url,
+    )
+    fastmcp_settings["token_verifier"] = StaticBearerTokenVerifier(
+        expected_token=bearer_token,
+        resource_url=public_server_url,
+    )
+
+mcp = FastMCP("Minimax", **fastmcp_settings)
 api_client = MinimaxAPIClient(api_key, api_host)
 
 @mcp.tool(
@@ -172,7 +272,7 @@ def minimax_understand_image(
 def main():
     print("Starting Minimax MCP server")
     """Run the Minimax MCP server"""
-    mcp.run()
+    mcp.run(transport=transport)
 
 
 if __name__ == "__main__":
