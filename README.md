@@ -84,12 +84,40 @@ Go to `Cursor -> Preferences -> Cursor Settings -> MCP -> Add new global MCP Ser
 That's it. Your MCP client can now interact with MiniMax through these tools:
 
 ## Transport
-We support two transport types: stdio and sse.
-| stdio  | SSE  |
-|:-----|:-----|
-| Run locally | Can be deployed locally or in the cloud |
-| Communication through `stdout` | Communication through `network` |
-| Input: Supports processing `local files` or valid `URL` resources | Input: When deployed in the cloud, it is recommended to use `URL` for input |
+We support three transport types: `stdio`, `sse`, and `streamable`.
+
+| Transport | Use case | Communication | Default endpoint |
+|:--|:--|:--|:--|
+| `stdio` | Local MCP clients such as Claude Desktop / Cursor | `stdin/stdout` | N/A |
+| `sse` | Remote deployment with SSE-compatible MCP clients | Network | `http://<host>:<port>/sse` |
+| `streamable` | Remote deployment with Streamable HTTP MCP clients | Network | `http://<host>:<port>/mcp` |
+
+For network transports, you can configure the server entirely through environment variables:
+
+| Environment variable | Description | Default |
+|:--|:--|:--|
+| `MINIMAX_MCP_TRANSPORT` | MCP transport mode: `stdio`, `sse`, or `streamable` | `stdio` |
+| `MINIMAX_MCP_HOST` | Listen address for `sse` / `streamable` | `0.0.0.0` |
+| `MINIMAX_MCP_PORT` | Listen port for `sse` / `streamable` | `8000` |
+| `MINIMAX_MCP_BEARER_TOKEN` | Optional static bearer token required by `sse` / `streamable` HTTP requests | unset |
+
+When `MINIMAX_MCP_BEARER_TOKEN` is set, HTTP clients must send:
+
+```http
+Authorization: Bearer <your-token>
+```
+
+Example:
+
+```bash
+MINIMAX_API_KEY=your-api-key \
+MINIMAX_API_HOST=https://api.minimax.io \
+MINIMAX_MCP_TRANSPORT=streamable \
+MINIMAX_MCP_HOST=0.0.0.0 \
+MINIMAX_MCP_PORT=8000 \
+MINIMAX_MCP_BEARER_TOKEN=your-secret-token \
+uvx minimax-coding-plan-mcp
+```
 
 ## Available Tools
 | tool  | description  |

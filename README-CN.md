@@ -85,12 +85,40 @@
 你的MCP客户端现在可以通过Claude Desktop和Cursor等这些工具与MiniMax交互：
 
 ## Transport
-我们支持两种传输方式: stdio and sse.
-| stdio  | SSE  |
-|:-----|:-----|
-| 在本地部署运行 | 本地或云端部署均可  |
-|通过 stdout 进行通信| 通过网络通信|
-|输入：支持处理本地文件，或有效的URL资源| 输入: 若部署在云端，建议使用URL进行输入|
+我们支持三种传输方式：`stdio`、`sse` 和 `streamable`。
+
+| 传输方式 | 适用场景 | 通信方式 | 默认端点 |
+|:--|:--|:--|:--|
+| `stdio` | Claude Desktop / Cursor 等本地 MCP 客户端 | `stdin/stdout` | 无 |
+| `sse` | 兼容 SSE 的远程 MCP 客户端 | 网络 | `http://<host>:<port>/sse` |
+| `streamable` | 兼容 Streamable HTTP 的远程 MCP 客户端 | 网络 | `http://<host>:<port>/mcp` |
+
+对于网络传输方式，可以通过环境变量完成配置：
+
+| 环境变量 | 说明 | 默认值 |
+|:--|:--|:--|
+| `MINIMAX_MCP_TRANSPORT` | MCP 传输模式：`stdio`、`sse` 或 `streamable` | `stdio` |
+| `MINIMAX_MCP_HOST` | `sse` / `streamable` 的监听地址 | `0.0.0.0` |
+| `MINIMAX_MCP_PORT` | `sse` / `streamable` 的监听端口 | `8000` |
+| `MINIMAX_MCP_BEARER_TOKEN` | 可选的静态 Bearer Token；设置后，`sse` / `streamable` 的 HTTP 请求都需要携带该 Token | 未设置 |
+
+如果设置了 `MINIMAX_MCP_BEARER_TOKEN`，HTTP 客户端需要发送：
+
+```http
+Authorization: Bearer <your-token>
+```
+
+示例：
+
+```bash
+MINIMAX_API_KEY=your-api-key \
+MINIMAX_API_HOST=https://api.minimax.io \
+MINIMAX_MCP_TRANSPORT=streamable \
+MINIMAX_MCP_HOST=0.0.0.0 \
+MINIMAX_MCP_PORT=8000 \
+MINIMAX_MCP_BEARER_TOKEN=your-secret-token \
+uvx minimax-coding-plan-mcp
+```
 
 ## 可用方法
 | 方法  | 描述  |
